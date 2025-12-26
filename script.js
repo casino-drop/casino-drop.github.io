@@ -1,6 +1,6 @@
 // ================================================
-// 🎰 SISTEMA DROP VIP - VERSIÓN 3.1
-// CONEXIÓN 100% ESTABLE - DROPS AUTOMÁTICOS
+// 🎰 SISTEMA DROP VIP - VERSIÓN 3.2
+// CONEXIÓN 100% ESTABLE - DROPS AUTOMÁTICOS - CÓDIGOS CANJEADOS EN TIEMPO REAL
 // ================================================
 
 // CONFIGURACIÓN - ¡REEMPLAZA ESTOS VALORES!
@@ -9,7 +9,7 @@ const CONFIG = {
     API_URL: 'https://script.google.com/macros/s/AKfycbxLiv7YM-oBrWnWhZz-BKYvPgrSOeVF6vxhTA-akLzzvHLP_EuBtU7hjsGlVfqZreTU4Q/exec',
     
     // Configuración del sistema
-    UPDATE_INTERVAL: 5000, // 5 segundos (más frecuente para detectar cambios)
+    UPDATE_INTERVAL: 3000, // 3 segundos (más rápido para actualizar canjes)
     DROP_DURATION: 5 * 60 * 1000, // 5 minutos en milisegundos
     DROP_INTERVAL: 4 * 60 * 60 * 1000, // 4 horas en milisegundos
     
@@ -25,9 +25,9 @@ const AppState = {
     dropActive: false,
     dropEndTime: null,
     nextDropTime: null,
-    usedCodes: [],
+    usedCodes: [], // Códigos ya canjeados
     adminPanelVisible: false,
-    currentCodes: [],
+    currentCodes: [], // Códigos actuales del drop
     currentDropId: null,
     dropStartTime: null,
     apiConnected: false,
@@ -37,7 +37,9 @@ const AppState = {
     connectionRetryTimer: null,
     totalDrops: 0,
     totalUsedCodes: 0,
-    lastAction: null
+    lastAction: null,
+    redeemingCodes: new Set(), // Códigos que están siendo canjeados ahora
+    claimedCodes: new Set() // Códigos reclamados en esta sesión
 };
 
 // CACHE DE ELEMENTOS DOM
@@ -48,7 +50,7 @@ const DOM = {};
 // ================================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🎰 Sistema DROP VIP v3.1 inicializando...');
+    console.log('🎰 Sistema DROP VIP v3.2 inicializando...');
     
     // Inicializar elementos DOM
     initializeDOM();
@@ -104,7 +106,7 @@ function setupEventListeners() {
     DOM.resetSystemBtn.addEventListener('click', resetSystem);
     DOM.checkApiBtn.addEventListener('click', checkApiStatus);
     DOM.forceRefreshBtn.addEventListener('click', () => {
-        updateStatus(true); // Forzar actualización
+        updateStatus(true);
         showToast('🔄 Actualización forzada', 'info');
     });
     
@@ -112,14 +114,6 @@ function setupEventListeners() {
     window.addEventListener('beforeunload', () => {
         if (AppState.connectionRetryTimer) {
             clearTimeout(AppState.connectionRetryTimer);
-        }
-    });
-    
-    // Detectar visibilidad de la página
-    document.addEventListener('visibilitychange', () => {
-        if (!document.hidden) {
-            // La página se volvió visible, actualizar estado
-            updateStatus(true);
         }
     });
 }
@@ -133,29 +127,27 @@ function startSystem() {
     // Cargar datos iniciales
     loadInitialData();
     
-    // Iniciar actualización periódica
+    // Iniciar actualización periódica (más frecuente para detectar canjes)
     setInterval(() => updateStatus(false), CONFIG.UPDATE_INTERVAL);
 }
 
 // Cargar datos iniciales
 function loadInitialData() {
     showToast('Conectando con el servidor...', 'info');
-    updateStatus(true); // Forzar actualización inicial
+    updateStatus(true);
 }
 
 // ================================================
-// 🔄 ACTUALIZACIÓN DEL ESTADO (MEJORADA)
+// 🔄 ACTUALIZACIÓN DEL ESTADO
 // ================================================
 
 // Actualizar estado del drop
 async function updateStatus(force = false) {
-    // Evitar múltiples actualizaciones simultáneas
     if (AppState.isUpdating && !force) return;
     
     AppState.isUpdating = true;
     
     try {
-        console.log('🔄 Actualizando estado del DROP...');
         const data = await callApi('estado');
         
         if (data && data.exito) {
@@ -163,9 +155,6 @@ async function updateStatus(force = false) {
             updateConnectionStatus(true);
             updateLastUpdateTime();
             AppState.retryCount = 0;
-            
-            // Verificar si necesitamos un nuevo drop
-            checkForNewDrop(data);
             
         } else {
             handleApiError(data ? data.error : 'Error desconocido');
@@ -206,7 +195,7 @@ function processApiResponse(data) {
     }
     
     // Actualizar UI
-    updateUI(data);
+    updateUI();
     updateAdminInfo();
     
     // Notificar cambios importantes
@@ -223,30 +212,6 @@ function processApiResponse(data) {
     }
 }
 
-// Verificar si necesitamos un nuevo drop
-function checkForNewDrop(data) {
-    const now = new Date();
-    const dropEndTime = new Date(data.tiempoRestante);
-    const nextDropTime = new Date(data.proximoDrop);
-    
-    // Si el drop terminó pero aún no hay próximo drop programado
-    if (!AppState.dropActive && nextDropTime < now) {
-        console.log('⚠️ El drop terminó pero no hay próximo drop programado');
-        
-        // Mostrar mensaje especial
-        DOM.codesContainer.innerHTML = `
-            <div class="no-codes-message">
-                <i class="fas fa-clock"></i>
-                <h3>Esperando nuevo DROP</h3>
-                <p>El drop anterior ha terminado. El sistema está esperando que se active un nuevo drop.</p>
-                <button class="refresh-btn" onclick="updateStatus(true)">
-                    <i class="fas fa-sync-alt"></i> Actualizar
-                </button>
-            </div>
-        `;
-    }
-}
-
 // Manejar errores de API
 function handleApiError(error) {
     console.error('❌ Error en la API:', error);
@@ -257,7 +222,6 @@ function handleApiError(error) {
         showToast(`Reintentando conexión (${AppState.retryCount}/3)...`, 'warning');
         updateConnectionStatus(false);
         
-        // Intentar reconexión después de un tiempo
         clearTimeout(AppState.connectionRetryTimer);
         AppState.connectionRetryTimer = setTimeout(() => {
             updateStatus(true);
@@ -266,7 +230,6 @@ function handleApiError(error) {
         showToast('Error de conexión persistente. Verifica tu internet.', 'error');
         updateConnectionStatus('error');
         
-        // Resetear contador después de 30 segundos
         setTimeout(() => {
             AppState.retryCount = 0;
         }, 30000);
@@ -274,7 +237,7 @@ function handleApiError(error) {
 }
 
 // ================================================
-// 🌐 CONEXIÓN CON LA API (OPTIMIZADA)
+// 🌐 CONEXIÓN CON LA API
 // ================================================
 
 // Función para llamar a la API
@@ -290,10 +253,7 @@ async function callApi(action, params = {}) {
     
     url.searchParams.append('_t', Date.now());
     
-    console.log(`📡 Llamando a API: ${action}`);
-    
     try {
-        // Intentar con fetch directo
         const response = await fetch(url.toString(), {
             method: 'GET',
             mode: 'cors',
@@ -310,7 +270,6 @@ async function callApi(action, params = {}) {
         console.log('Método directo falló, intentando con proxy...');
         
         try {
-            // Método alternativo con proxy
             const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url.toString())}`;
             const response = await fetch(proxyUrl, {
                 method: 'GET',
@@ -331,11 +290,11 @@ async function callApi(action, params = {}) {
 }
 
 // ================================================
-// 🎨 INTERFAZ DE USUARIO (MEJORADA)
+// 🎨 INTERFAZ DE USUARIO (CON CÓDIGOS CANJEADOS)
 // ================================================
 
 // Actualizar interfaz de usuario
-function updateUI(data) {
+function updateUI() {
     // Actualizar indicador de estado
     if (AppState.dropActive) {
         DOM.statusIndicator.className = 'status-indicator status-active';
@@ -349,15 +308,31 @@ function updateUI(data) {
         DOM.countdownTitle.textContent = 'Próximo DROP en';
     }
     
-    // Actualizar códigos disponibles
-    const availableCount = data.codigosDisponibles || 0;
-    DOM.availableCodes.textContent = availableCount;
+    // Actualizar códigos disponibles (excluyendo los ya canjeados)
+    const availableCodes = AppState.currentCodes.filter(code => 
+        !AppState.usedCodes.includes(code) && 
+        !AppState.claimedCodes.has(code)
+    ).length;
+    
+    DOM.availableCodes.textContent = availableCodes;
+    
+    // Actualizar badge de códigos canjeados
+    const claimedCount = AppState.usedCodes.length + AppState.claimedCodes.size;
+    const claimedBadge = document.getElementById('claimedBadge');
+    if (claimedBadge) {
+        if (claimedCount > 0) {
+            claimedBadge.textContent = `${claimedCount} canjeado${claimedCount !== 1 ? 's' : ''}`;
+            claimedBadge.style.display = 'inline-block';
+        } else {
+            claimedBadge.style.display = 'none';
+        }
+    }
     
     // Actualizar códigos
-    updateCodesDisplay(data.datosDrop);
+    updateCodesDisplay();
     
     // Actualizar información del drop
-    updateDropInfo(data.datosDrop);
+    updateDropInfo();
     
     // Actualizar próximo drop
     if (AppState.nextDropTime) {
@@ -366,26 +341,24 @@ function updateUI(data) {
 }
 
 // Actualizar información del drop
-function updateDropInfo(dropData) {
-    if (!dropData) return;
+function updateDropInfo() {
+    if (!AppState.currentDropId) return;
     
-    DOM.dropId.textContent = dropData.idDrop || '---';
+    DOM.dropId.textContent = AppState.currentDropId || '---';
     
-    if (dropData.horaInicio) {
-        const startTime = new Date(dropData.horaInicio);
-        DOM.dropStart.textContent = formatTime(startTime);
+    if (AppState.dropStartTime) {
+        DOM.dropStart.textContent = formatTime(AppState.dropStartTime);
     }
 }
 
-// Actualizar visualización de códigos (CORREGIDA)
-function updateCodesDisplay(dropData) {
+// Actualizar visualización de códigos (CON CÓDIGOS CANJEADOS)
+function updateCodesDisplay() {
     // Si no hay drop activo, mostrar mensaje específico
     if (!AppState.dropActive) {
         const now = new Date();
         const timeToNextDrop = AppState.nextDropTime ? AppState.nextDropTime - now : 0;
         
         if (timeToNextDrop > 0) {
-            // Hay próximo drop programado
             const minutes = Math.floor(timeToNextDrop / (1000 * 60));
             DOM.codesContainer.innerHTML = `
                 <div class="no-codes-message">
@@ -396,7 +369,6 @@ function updateCodesDisplay(dropData) {
                 </div>
             `;
         } else {
-            // No hay drop programado
             DOM.codesContainer.innerHTML = `
                 <div class="no-codes-message">
                     <i class="fas fa-clock"></i>
@@ -412,8 +384,8 @@ function updateCodesDisplay(dropData) {
         return;
     }
     
-    // Si hay drop activo pero no hay datos
-    if (!dropData) {
+    // Si hay drop activo pero no hay códigos
+    if (AppState.currentCodes.length === 0) {
         DOM.codesContainer.innerHTML = `
             <div class="no-codes-message">
                 <i class="fas fa-exclamation-triangle"></i>
@@ -427,37 +399,59 @@ function updateCodesDisplay(dropData) {
         return;
     }
     
+    // Verificar si todos los códigos están canjeados
+    const allCodesClaimed = AppState.currentCodes.every(code => 
+        AppState.usedCodes.includes(code) || AppState.claimedCodes.has(code)
+    );
+    
+    if (allCodesClaimed) {
+        DOM.codesContainer.innerHTML = `
+            <div class="all-codes-claimed">
+                <i class="fas fa-trophy"></i>
+                <h3>¡Todos los códigos han sido canjeados!</h3>
+                <p>Los 3 códigos VIP de este drop ya han sido reclamados por usuarios.</p>
+                <p>Espera el próximo drop para tener una nueva oportunidad.</p>
+            </div>
+        `;
+        return;
+    }
+    
     // Mostrar códigos del drop activo
     const codes = [
-        { code: dropData.codigo1, prize: '1000 FICHAS' },
-        { code: dropData.codigo2, prize: '10% EXTRA EN FICHAS' },
-        { code: dropData.codigo3, prize: '5% EXTRA EN FICHAS' }
+        { code: AppState.currentCodes[0], prize: '1000 FICHAS' },
+        { code: AppState.currentCodes[1], prize: '10% EXTRA EN FICHAS' },
+        { code: AppState.currentCodes[2], prize: '5% EXTRA EN FICHAS' }
     ];
     
     let html = '';
-    let validCodesCount = 0;
     
-    codes.forEach((item) => {
-        const isUsed = AppState.usedCodes.includes(item.code);
-        const hasCode = item.code && item.code.trim() !== '';
+    codes.forEach((item, index) => {
+        if (!item.code || item.code.trim() === '') return;
         
-        if (hasCode) validCodesCount++;
+        const isUsed = AppState.usedCodes.includes(item.code) || AppState.claimedCodes.has(item.code);
+        const isClaiming = AppState.redeemingCodes.has(item.code);
         
         html += `
-            <div class="code-item ${!hasCode ? 'code-expired' : ''}">
+            <div class="code-item ${isUsed ? 'code-used-item' : ''}">
                 <div class="code-label">${item.prize}</div>
-                <div class="code-value ${isUsed ? 'code-used' : ''} ${!hasCode ? 'code-expired' : ''}" 
-                     onclick="${hasCode && !isUsed ? `copyCode('${item.code}')` : ''}"
-                     title="${hasCode && !isUsed ? 'Haz clic para copiar' : (isUsed ? 'Ya reclamado' : 'No disponible')}">
-                    ${item.code || '--------'}
+                <div class="code-value ${isUsed ? 'code-used' : ''} ${isClaiming ? 'code-claiming' : ''}" 
+                     onclick="${!isUsed && !isClaiming ? `copyCode('${item.code}')` : ''}"
+                     title="${!isUsed && !isClaiming ? 'Haz clic para copiar' : (isUsed ? 'Ya reclamado' : 'En proceso de canje...')}">
+                    ${item.code}
+                    ${isClaiming ? '<div class="claiming-overlay"><i class="fas fa-spinner fa-spin"></i></div>' : ''}
                 </div>
                 ${isUsed ? 
-                    '<div class="code-status"><i class="fas fa-check-circle"></i> Reclamado</div>' : 
-                    (hasCode ? 
-                        `<button class="redeem-btn" onclick="redeemCode('${item.code}')">
+                    `<div class="code-status claimed">
+                        <i class="fas fa-check-circle"></i> Canjeado
+                        <div class="claim-time">Reclamado recientemente</div>
+                    </div>` : 
+                    (isClaiming ?
+                        `<button class="redeem-btn claiming" disabled>
+                            <i class="fas fa-spinner fa-spin"></i> Canjeando...
+                        </button>` :
+                        `<button class="redeem-btn" onclick="redeemCode('${item.code}', ${index})">
                             <i class="fab fa-whatsapp"></i> Canjear Código
-                        </button>` : 
-                        '<div class="code-status">No disponible</div>'
+                        </button>`
                     )
                 }
             </div>
@@ -493,7 +487,7 @@ function updateAdminInfo() {
     }
     
     if (DOM.totalUsedCodes) {
-        DOM.totalUsedCodes.textContent = AppState.totalUsedCodes;
+        DOM.totalUsedCodes.textContent = AppState.totalUsedCodes + AppState.claimedCodes.size;
     }
     
     if (DOM.lastAction) {
@@ -510,11 +504,10 @@ function updateLastUpdateTime() {
     }
 }
 
-// Actualizar cuenta regresiva (MEJORADA)
+// Actualizar cuenta regresiva
 function updateCountdown() {
     const now = new Date();
     
-    // Determinar qué tiempo mostrar
     let targetTime, isDropActive;
     
     if (AppState.dropActive && AppState.dropEndTime) {
@@ -530,19 +523,15 @@ function updateCountdown() {
     
     const diff = targetTime - now;
     
-    // Si el tiempo ha expirado
     if (diff <= 0) {
         DOM.timer.textContent = '00:00:00';
         
-        // Si era un drop activo que terminó, actualizar estado
         if (isDropActive) {
-            // Forzar actualización para obtener nuevo estado
             setTimeout(() => updateStatus(true), 1000);
         }
         return;
     }
     
-    // Calcular horas, minutos, segundos
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((diff % (1000 * 60)) / 1000);
@@ -550,12 +539,11 @@ function updateCountdown() {
     DOM.timer.textContent = 
         `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     
-    // Cambiar color según el tiempo restante
     if (isDropActive) {
-        if (diff < 60000) { // Menos de 1 minuto
+        if (diff < 60000) {
             DOM.timer.style.color = '#FF5252';
             DOM.timer.style.animation = 'pulse 1s infinite';
-        } else if (diff < 300000) { // Menos de 5 minutos
+        } else if (diff < 300000) {
             DOM.timer.style.color = '#FF9800';
         } else {
             DOM.timer.style.color = '#FFD700';
@@ -566,47 +554,91 @@ function updateCountdown() {
 }
 
 // ================================================
-// 🎯 FUNCIONALIDADES PRINCIPALES
+// 🎯 FUNCIONALIDADES PRINCIPALES - CANJE DE CÓDIGOS
 // ================================================
 
-// Función global para canjear código
-window.redeemCode = async function(code) {
+// Función global para canjear código (MEJORADA)
+window.redeemCode = async function(code, index) {
+    console.log(`Intentando canjear código: ${code}`);
+    
+    // Validaciones básicas
     if (!code || code.trim() === '') {
         showToast('❌ Código no válido', 'error');
         return;
     }
     
-    // Verificar si el drop está activo
     if (!AppState.dropActive) {
         showToast('❌ El drop no está activo', 'error');
         return;
     }
     
-    // Verificar si el código está usado
     if (AppState.usedCodes.includes(code)) {
         showToast('❌ Este código ya fue reclamado', 'error');
         return;
     }
     
-    // Verificar si el código existe en los actuales
+    if (AppState.claimedCodes.has(code)) {
+        showToast('❌ Este código ya está siendo canjeado', 'warning');
+        return;
+    }
+    
     if (!AppState.currentCodes.includes(code)) {
         showToast('❌ Código no válido para este drop', 'error');
         return;
     }
     
-    // Copiar al portapapeles
-    await copyToClipboard(code);
+    // Marcar código como en proceso de canje
+    AppState.redeemingCodes.add(code);
+    updateCodesDisplay();
     
-    // Abrir WhatsApp
-    openWhatsAppWithCode(code);
-    
-    // Registrar uso local
-    AppState.usedCodes.push(code);
-    AppState.totalUsedCodes = AppState.usedCodes.length;
-    updateAdminInfo();
-    
-    // Actualizar UI
-    updateStatus(true);
+    try {
+        // 1. Copiar código al portapapeles
+        const copied = await copyToClipboard(code);
+        if (!copied) {
+            throw new Error('No se pudo copiar el código');
+        }
+        
+        // 2. Registrar código como usado en la API
+        const apiResponse = await callApi('usarCodigo', { codigo: code });
+        
+        if (apiResponse.exito) {
+            // 3. Marcar como canjeado exitosamente
+            AppState.redeemingCodes.delete(code);
+            AppState.claimedCodes.add(code);
+            AppState.usedCodes.push(code);
+            AppState.totalUsedCodes++;
+            
+            // 4. Actualizar UI inmediatamente
+            updateUI();
+            
+            // 5. Mostrar mensaje de éxito
+            showToast(`✅ ${apiResponse.mensaje}`, 'success');
+            
+            // 6. Abrir WhatsApp con el código
+            setTimeout(() => {
+                openWhatsAppWithCode(code);
+            }, 500);
+            
+            // 7. Actualizar estado general después de 2 segundos
+            setTimeout(() => updateStatus(true), 2000);
+            
+        } else {
+            // Error al registrar en API
+            AppState.redeemingCodes.delete(code);
+            updateCodesDisplay();
+            
+            showToast(`❌ ${apiResponse.error || 'Error al registrar código'}`, 'error');
+        }
+        
+    } catch (error) {
+        console.error('Error en canje:', error);
+        
+        // Error en el proceso
+        AppState.redeemingCodes.delete(code);
+        updateCodesDisplay();
+        
+        showToast('❌ Error al procesar el canje. Intenta nuevamente.', 'error');
+    }
 };
 
 // Función global para copiar código
@@ -620,6 +652,7 @@ async function copyToClipboard(text) {
     try {
         await navigator.clipboard.writeText(text);
         showToast(`✅ Código copiado: ${text}`, 'success');
+        return true;
     } catch (err) {
         console.error('Error al copiar:', err);
         
@@ -634,11 +667,13 @@ async function copyToClipboard(text) {
         try {
             document.execCommand('copy');
             showToast(`✅ Código copiado: ${text}`, 'success');
+            return true;
         } catch (copyError) {
             showToast('No se pudo copiar el código. Intenta manualmente.', 'error');
+            return false;
+        } finally {
+            document.body.removeChild(textArea);
         }
-        
-        document.body.removeChild(textArea);
     }
 }
 
@@ -650,7 +685,7 @@ function openWhatsAppWithCode(code) {
 }
 
 // ================================================
-// 🔧 PANEL DE ADMINISTRACIÓN (MEJORADO)
+// 🔧 PANEL DE ADMINISTRACIÓN
 // ================================================
 
 // Activar nuevo drop
@@ -674,11 +709,15 @@ async function activateDrop() {
             showToast('✅ ' + response.mensaje, 'success');
             DOM.adminPassword.value = '';
             
+            // Limpiar códigos reclamados de esta sesión
+            AppState.claimedCodes.clear();
+            AppState.redeemingCodes.clear();
+            
             // Incrementar contador de drops
             AppState.totalDrops++;
             localStorage.setItem('totalDrops', AppState.totalDrops);
             
-            // Actualizar estado después de 1 segundo
+            // Actualizar estado
             setTimeout(() => updateStatus(true), 1000);
         } else {
             showToast('❌ ' + (response.error || 'Error al activar drop'), 'error');
@@ -718,11 +757,14 @@ async function resetSystem() {
             showToast('✅ ' + response.mensaje, 'success');
             DOM.adminPassword.value = '';
             
-            // Resetear estadísticas locales
+            // Resetear estado local
+            AppState.claimedCodes.clear();
+            AppState.redeemingCodes.clear();
             AppState.totalDrops = 0;
+            AppState.totalUsedCodes = 0;
             localStorage.setItem('totalDrops', '0');
             
-            // Actualizar estado después de 2 segundos
+            // Actualizar estado
             setTimeout(() => updateStatus(true), 2000);
         } else {
             showToast('❌ ' + (response.error || 'Error al reiniciar sistema'), 'error');
@@ -863,15 +905,13 @@ window.addEventListener('offline', () => {
 // Auto-actualizar cuando la página vuelve a ser visible
 document.addEventListener('visibilitychange', () => {
     if (!document.hidden) {
-        // La pestaña se hizo visible, actualizar datos
         updateStatus(true);
     }
 });
 
-// Verificar estado periódicamente incluso si hay errores
+// Verificar estado periódicamente
 setInterval(() => {
     if (!AppState.apiConnected && AppState.retryCount > 3) {
-        // Intentar reconexión después de 30 segundos de error
         updateStatus(true);
     }
 }, 30000);
