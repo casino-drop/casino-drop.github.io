@@ -14,7 +14,7 @@ const CONFIG = {
     DROP_INTERVAL: 4 * 60 * 60 * 1000, // 4 horas en milisegundos
     
     // ¡REEMPLAZA CON TU NÚMERO DE WHATSAPP!
-    WHATSAPP_NUMBER: '+5491122334455',
+    WHATSAPP_NUMBER: '+3765300975',
     
     // Mensaje predeterminado para WhatsApp
     WHATSAPP_MESSAGE: 'Hola! Tengo un código VIP para canjear: [CODIGO]'
