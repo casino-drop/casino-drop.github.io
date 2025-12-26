@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DROP VIP - CeluApuestas</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎰</text></svg>">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <i class="fas fa-dice"></i>
+            </div>
+            <h1>DROP VIP - CELUAPUESTAS</h1>
+            <p>Códigos exclusivos | Canje por WhatsApp</p>
+        </div>
+
+        <!-- Connection Status -->
+        <div class="connection-status" id="connectionStatus">
+            <i class="fas fa-sync fa-spin"></i> Conectando con el servidor...
+        </div>
+
+        <!-- Main Grid -->
+        <div class="grid">
+            <!-- Status Card -->
+            <div class="card status-card" id="statusCard">
+                <div class="card-title">
+                    <i class="fas fa-info-circle"></i> Estado del DROP
+                </div>
+                <div id="statusIndicator" class="status-indicator status-inactive">
+                    <i class="fas fa-circle"></i> Cargando estado...
+                </div>
+                
+                <div class="countdown">
+                    <div class="countdown-title" id="countdownTitle">Tiempo restante</div>
+                    <div class="timer" id="timer">00:00:00</div>
+                </div>
+                
+                <div class="form-group">
+                    <div class="form-label">Códigos disponibles: <span id="availableCodes" class="available-count">0</span> de 3</div>
+                    <div class="codes-container" id="codesContainer">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <div class="form-label">Próximo DROP en:</div>
+                    <div id="nextDrop" class="next-drop-time">Cargando...</div>
+                </div>
+                
+                <!-- Drop Info -->
+                <div class="drop-info" id="dropInfo">
+                    <div class="drop-id">ID: <span id="dropId">---</span></div>
+                    <div class="drop-time">Inició: <span id="dropStart">--:--:--</span></div>
+                </div>
+            </div>
+
+            <!-- Instructions Card -->
+            <div class="card instructions">
+                <div class="card-title">
+                    <i class="fas fa-comments"></i> Cómo Canjear tu Premio
+                </div>
+                
+                <div class="form-group">
+                    <p class="instructions-intro">
+                        ¡Felicidades por obtener un código! Para canjear tu premio sigue estos pasos:
+                    </p>
+                    
+                    <ul class="instructions-list">
+                        <li><i class="fas fa-mouse-pointer"></i> <strong>Haz clic en "Canjear"</strong> debajo del código que quieras reclamar</li>
+                        <li><i class="fab fa-whatsapp"></i> <strong>Se abrirá WhatsApp automáticamente</strong> con tu código listo</li>
+                        <li><i class="fas fa-user-check"></i> <strong>Envía el mensaje</strong> y espera confirmación del administrador</li>
+                        <li><i class="fas fa-clock"></i> <strong>Tiempo de canje:</strong> Máximo 5 minutos después de reclamado</li>
+                    </ul>
+                    
+                    <div class="instructions-note">
+                        <i class="fas fa-info-circle"></i> <strong>IMPORTANTE:</strong> Los drops duran 5 minutos y se renuevan mediante el cajero. 
+                        Los códigos expirados no se pueden canjear.
+                    </div>
+                    
+                    <div class="whatsapp-help">
+                        <i class="fab fa-whatsapp"></i> 
+                        <span>¿Problemas con el canje? Contacta al administrador directamente por WhatsApp.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Panel Toggle -->
+        <div class="admin-toggle">
+            <button id="adminToggleBtn" class="toggle-btn">
+                <i class="fas fa-lock"></i> Panel de Administración
+            </button>
+        </div>
+
+        <!-- Admin Panel -->
+        <div class="admin-panel" id="adminPanel">
+            <div class="card admin-card">
+                <div class="card-title">
+                    <i class="fas fa-user-shield"></i> Panel de Administración
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="adminPassword">Contraseña de Administrador</label>
+                    <input type="password" id="adminPassword" class="form-input" placeholder="Ingresa la contraseña">
+                </div>
+                
+                <div class="admin-buttons">
+                    <button id="activateDropBtn" class="btn btn-secondary">
+                        <i class="fas fa-play-circle"></i> Activar Nuevo DROP
+                    </button>
+                    
+                    <button id="resetSystemBtn" class="btn btn-danger">
+                        <i class="fas fa-redo-alt"></i> Reiniciar Sistema
+                    </button>
+                    
+                    <button id="checkApiBtn" class="btn btn-admin">
+                        <i class="fas fa-heartbeat"></i> Verificar Estado de API
+                    </button>
+                    
+                    <button id="forceRefreshBtn" class="btn btn-admin">
+                        <i class="fas fa-sync-alt"></i> Forzar Actualización
+                    </button>
+                </div>
+                
+                <div class="admin-info">
+                    <div class="info-item">
+                        <span class="info-label">Drops totales:</span>
+                        <span id="totalDrops" class="info-value">0</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Códigos usados:</span>
+                        <span id="totalUsedCodes" class="info-value">0</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Última acción:</span>
+                        <span id="lastAction" class="info-value">--:--:--</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p class="footer-text">Sistema DROP VIP - CeluApuestas | Versión 3.1</p>
+            <div class="footer-status">
+                <span id="apiStatus">Estado: <span class="status-connecting">Conectando...</span></span>
+                <span class="separator">|</span>
+                <span>Última actualización: <span id="lastUpdate">--:--:--</span></span>
+            </div>
+            <div class="system-info">
+                <span>DROP activo | Duración: 5 minutos</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
