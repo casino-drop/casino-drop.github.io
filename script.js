@@ -6,7 +6,7 @@
 // CONFIGURACIÓN - ¡REEMPLAZA ESTOS VALORES!
 const CONFIG = {
     // ⚠️ ¡IMPORTANTE! Reemplaza con la URL de tu Web App de Google Apps Script
-    API_URL: 'https://script.google.com/macros/s/AKfycbxLiv7YM-oBrWnWhZz-BKYvPgrSOeVF6vxhTA-akLzzvHLP_EuBtU7hjsGlVfqZreTU4Q/exec',
+    API_URL: 'https://script.google.com/macros/s/AKfycbxLiv7YM-oBrWnWhZz-BKYvPgrSOeVF6vxhTA-akLzzvHLP_EuBtU7hjsGlVfqZreTU4/exec',
     
     // Configuración del sistema
     UPDATE_INTERVAL: 3000, // 3 segundos (más rápido para actualizar canjes)
