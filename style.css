@@ -57,7 +57,6 @@ body::before {
     z-index: 1;
 }
 
-/* Header */
 .header {
     text-align: center;
     margin-bottom: 30px;
@@ -99,7 +98,6 @@ body::before {
     text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
 }
 
-/* Connection Status */
 .connection-status {
     display: inline-flex;
     align-items: center;
@@ -139,7 +137,6 @@ body::before {
     font-size: 0.9rem;
 }
 
-/* Card */
 .card {
     background: linear-gradient(145deg, rgba(26, 31, 46, 0.95), rgba(20, 25, 38, 0.95));
     border-radius: var(--border-radius);
@@ -181,7 +178,6 @@ body::before {
     font-size: 1.6rem;
 }
 
-/* Status Card */
 .status-card::before {
     height: 4px;
     background: linear-gradient(90deg, var(--primary), var(--secondary), var(--primary));
@@ -215,6 +211,19 @@ body::before {
     background: rgba(244, 67, 54, 0.15);
     color: var(--danger);
     border-color: rgba(244, 67, 54, 0.4);
+}
+
+.status-waiting {
+    background: rgba(33, 150, 243, 0.15);
+    color: var(--info);
+    border-color: rgba(33, 150, 243, 0.4);
+    animation: pulse-blue 2s infinite;
+}
+
+@keyframes pulse-blue {
+    0% { opacity: 0.8; }
+    50% { opacity: 1; }
+    100% { opacity: 0.8; }
 }
 
 .status-indicator i {
@@ -261,7 +270,6 @@ body::before {
     text-align: center;
     border: 1px solid rgba(255, 255, 255, 0.08);
     transition: var(--transition);
-    position: relative;
 }
 
 .code-item:hover {
@@ -299,19 +307,19 @@ body::before {
     border-color: rgba(255, 215, 0, 0.4);
 }
 
-/* Estado de código canjeado */
-.code-used-item {
-    background: linear-gradient(145deg, rgba(76, 175, 80, 0.1), rgba(76, 175, 80, 0.05));
-    border-color: rgba(76, 175, 80, 0.3);
-    opacity: 0.9;
-}
-
 .code-used {
+    color: #666;
+    text-decoration: line-through;
+    cursor: not-allowed;
+    border-color: rgba(255, 255, 255, 0.05);
     background: rgba(76, 175, 80, 0.2) !important;
     border-color: rgba(76, 175, 80, 0.4) !important;
     color: #81C784 !important;
-    cursor: not-allowed !important;
-    text-decoration: line-through;
+}
+
+.code-used:hover {
+    background: rgba(76, 175, 80, 0.2) !important;
+    border-color: rgba(76, 175, 80, 0.4) !important;
 }
 
 .code-claiming {
@@ -335,11 +343,6 @@ body::before {
 .claiming-overlay i {
     color: #FF9800;
     font-size: 1.2rem;
-}
-
-.code-expired {
-    opacity: 0.6;
-    cursor: not-allowed;
 }
 
 .redeem-btn {
@@ -366,16 +369,21 @@ body::before {
     box-shadow: 0 5px 15px rgba(37, 211, 102, 0.3);
 }
 
-.redeem-btn:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-    transform: none;
-}
-
 .redeem-btn.claiming {
     background: linear-gradient(135deg, #FF9800, #F57C00) !important;
-    cursor: not-allowed !important;
+    cursor: not-allowed;
     opacity: 0.8;
+}
+
+.redeem-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.redeem-btn:disabled:hover {
+    transform: none !important;
+    box-shadow: none !important;
 }
 
 .redeem-btn i {
@@ -383,44 +391,6 @@ body::before {
     font-size: 1rem;
 }
 
-/* Estado de código canjeado */
-.code-status.claimed {
-    background: rgba(76, 175, 80, 0.15);
-    border: 1px solid rgba(76, 175, 80, 0.3);
-    border-radius: var(--border-radius-sm);
-    padding: 10px;
-    text-align: center;
-    color: #4CAF50;
-    font-weight: 600;
-    margin-top: 5px;
-}
-
-.code-status.claimed i {
-    color: #4CAF50;
-    margin-right: 5px;
-    font-size: 1rem;
-}
-
-.claim-time {
-    font-size: 0.75rem;
-    color: #81C784;
-    margin-top: 3px;
-    font-weight: 400;
-}
-
-/* Badge para códigos canjeados */
-.claimed-badge {
-    display: inline-block;
-    background: #4CAF50;
-    color: white;
-    padding: 3px 8px;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    margin-left: 8px;
-    font-weight: bold;
-}
-
-/* Form */
 .form-group {
     margin-bottom: 20px;
 }
@@ -454,13 +424,6 @@ body::before {
 .available-count {
     color: var(--secondary);
     font-weight: 700;
-    animation: countChange 0.5s ease;
-}
-
-@keyframes countChange {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.2); }
-    100% { transform: scale(1); }
 }
 
 .next-drop-time {
@@ -473,7 +436,6 @@ body::before {
     text-align: center;
 }
 
-/* Instructions Card */
 .instructions {
     background: linear-gradient(145deg, rgba(255, 215, 0, 0.08), rgba(255, 215, 0, 0.02));
     border: 1px solid rgba(255, 215, 0, 0.15);
@@ -518,31 +480,6 @@ body::before {
     margin-right: 5px;
 }
 
-/* WhatsApp Help */
-.whatsapp-help {
-    display: flex;
-    align-items: center;
-    background: rgba(37, 211, 102, 0.1);
-    border: 1px solid rgba(37, 211, 102, 0.2);
-    border-radius: var(--border-radius-sm);
-    padding: 12px 15px;
-    margin-top: 20px;
-    color: #ddd;
-    font-size: 0.9rem;
-}
-
-.whatsapp-help i {
-    color: var(--whatsapp);
-    font-size: 1.2rem;
-    margin-right: 10px;
-    flex-shrink: 0;
-}
-
-.whatsapp-help span {
-    line-height: 1.4;
-}
-
-/* Admin Panel */
 .admin-panel {
     display: none;
 }
@@ -641,7 +578,6 @@ body::before {
     transform: translateY(-2px);
 }
 
-/* Grid */
 .grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -649,7 +585,6 @@ body::before {
     margin-bottom: 30px;
 }
 
-/* Footer */
 .footer {
     text-align: center;
     padding: 20px;
@@ -689,14 +624,6 @@ body::before {
     color: var(--danger);
 }
 
-/* System Info */
-.system-info {
-    margin-top: 10px;
-    font-size: 0.8rem;
-    color: #555;
-}
-
-/* Toast Notifications */
 .toast-container {
     position: fixed;
     top: 20px;
@@ -778,7 +705,6 @@ body::before {
     color: var(--light);
 }
 
-/* Loading */
 .loading {
     display: flex;
     justify-content: center;
@@ -800,7 +726,6 @@ body::before {
     100% { transform: rotate(360deg); }
 }
 
-/* Glow animation for active drop */
 @keyframes glow {
     0% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
     50% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.6); }
@@ -811,139 +736,16 @@ body::before {
     animation: glow 2s infinite;
 }
 
-/* Animación para nuevo canje */
-@keyframes pulse-green {
-    0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
-    70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+.status-card.drop-waiting {
+    border-color: rgba(33, 150, 243, 0.3);
 }
 
-.code-used-item {
-    animation: pulse-green 1.5s ease;
+.status-card.drop-waiting::before {
+    background: linear-gradient(90deg, var(--info), #2196F3, var(--info));
+    background-size: 200% auto;
+    animation: gradientBar 2s linear infinite;
 }
 
-/* No codes message */
-.no-codes-message {
-    text-align: center;
-    padding: 30px;
-    color: #888;
-    grid-column: 1 / -1;
-}
-
-.no-codes-message i {
-    font-size: 2.5rem;
-    margin-bottom: 15px;
-    color: #666;
-}
-
-.no-codes-message h3 {
-    color: #ddd;
-    margin-bottom: 10px;
-    font-size: 1.2rem;
-}
-
-.no-codes-message p {
-    color: #aaa;
-    line-height: 1.5;
-}
-
-/* Refresh button */
-.refresh-btn {
-    background: transparent;
-    border: 2px solid rgba(33, 150, 243, 0.3);
-    color: var(--info);
-    padding: 8px 15px;
-    border-radius: 50px;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: var(--transition);
-    display: inline-flex;
-    align-items: center;
-    margin-top: 15px;
-}
-
-.refresh-btn:hover {
-    background: rgba(33, 150, 243, 0.1);
-    border-color: var(--info);
-}
-
-.refresh-btn i {
-    margin-right: 5px;
-}
-
-/* Drop Info */
-.drop-info {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 20px;
-    padding-top: 15px;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-    font-size: 0.85rem;
-    color: #888;
-}
-
-.drop-id, .drop-time {
-    display: flex;
-    flex-direction: column;
-}
-
-.drop-id span, .drop-time span {
-    color: #ddd;
-    font-family: 'Courier New', monospace;
-    font-size: 0.9rem;
-    margin-top: 3px;
-}
-
-/* Admin Info */
-.admin-info {
-    margin-top: 20px;
-    padding-top: 15px;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.info-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-    font-size: 0.9rem;
-}
-
-.info-label {
-    color: #aaa;
-}
-
-.info-value {
-    color: var(--secondary);
-    font-family: 'Courier New', monospace;
-    font-weight: 600;
-}
-
-/* All codes claimed message */
-.all-codes-claimed {
-    text-align: center;
-    padding: 30px;
-    grid-column: 1 / -1;
-}
-
-.all-codes-claimed i {
-    font-size: 3rem;
-    color: #4CAF50;
-    margin-bottom: 15px;
-}
-
-.all-codes-claimed h3 {
-    color: #4CAF50;
-    margin-bottom: 10px;
-    font-size: 1.3rem;
-}
-
-.all-codes-claimed p {
-    color: #81C784;
-    line-height: 1.5;
-}
-
-/* Responsive */
 @media (max-width: 768px) {
     .container {
         padding: 15px;
@@ -984,18 +786,8 @@ body::before {
         min-width: calc(100vw - 40px);
         max-width: calc(100vw - 40px);
     }
-    
-    .code-status.claimed {
-        padding: 8px;
-        font-size: 0.85rem;
-    }
-    
-    .claim-time {
-        font-size: 0.7rem;
-    }
 }
 
-/* Custom scrollbar */
 ::-webkit-scrollbar {
     width: 8px;
 }
@@ -1012,4 +804,195 @@ body::before {
 
 ::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(135deg, var(--primary-light), var(--secondary-dark));
+}
+
+.drop-info {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 0.85rem;
+    color: #888;
+}
+
+.drop-id, .drop-time {
+    display: flex;
+    flex-direction: column;
+}
+
+.drop-id span, .drop-time span {
+    color: #ddd;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    margin-top: 3px;
+}
+
+.whatsapp-help {
+    display: flex;
+    align-items: center;
+    background: rgba(37, 211, 102, 0.1);
+    border: 1px solid rgba(37, 211, 102, 0.2);
+    border-radius: var(--border-radius-sm);
+    padding: 12px 15px;
+    margin-top: 20px;
+    color: #ddd;
+    font-size: 0.9rem;
+}
+
+.whatsapp-help i {
+    color: var(--whatsapp);
+    font-size: 1.2rem;
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+.whatsapp-help span {
+    line-height: 1.4;
+}
+
+.admin-info {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+}
+
+.info-label {
+    color: #aaa;
+}
+
+.info-value {
+    color: var(--secondary);
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+}
+
+.system-info {
+    margin-top: 10px;
+    font-size: 0.8rem;
+    color: #555;
+}
+
+.no-codes-message {
+    text-align: center;
+    padding: 30px;
+    color: #888;
+    grid-column: 1 / -1;
+}
+
+.no-codes-message i {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    color: #666;
+}
+
+.no-codes-message h3 {
+    color: #ddd;
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+}
+
+.no-codes-message p {
+    color: #aaa;
+    line-height: 1.5;
+}
+
+.refresh-btn {
+    background: transparent;
+    border: 2px solid rgba(33, 150, 243, 0.3);
+    color: var(--info);
+    padding: 8px 15px;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    margin-top: 15px;
+}
+
+.refresh-btn:hover {
+    background: rgba(33, 150, 243, 0.1);
+    border-color: var(--info);
+}
+
+.refresh-btn i {
+    margin-right: 5px;
+}
+
+.code-used-item {
+    background: linear-gradient(145deg, rgba(76, 175, 80, 0.1), rgba(76, 175, 80, 0.05));
+    border-color: rgba(76, 175, 80, 0.3);
+    opacity: 0.9;
+}
+
+.code-status.claimed {
+    background: rgba(76, 175, 80, 0.15);
+    border: 1px solid rgba(76, 175, 80, 0.3);
+    border-radius: var(--border-radius-sm);
+    padding: 10px;
+    text-align: center;
+    color: #4CAF50;
+    font-weight: 600;
+    margin-top: 5px;
+}
+
+.code-status.claimed i {
+    color: #4CAF50;
+    margin-right: 5px;
+    font-size: 1rem;
+}
+
+.timer-large {
+    font-size: 3rem !important;
+    margin: 20px 0 !important;
+    color: #2196F3 !important;
+    font-weight: 800 !important;
+    font-family: 'Courier New', monospace;
+    animation: countdown-pulse 1s infinite;
+}
+
+@keyframes countdown-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+@keyframes pulse-green {
+    0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+}
+
+.code-used-item {
+    animation: pulse-green 1.5s ease;
+}
+
+@keyframes countChange {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.available-count {
+    animation: countChange 0.5s ease;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.btn:disabled:hover {
+    transform: none !important;
+    box-shadow: none !important;
 }
